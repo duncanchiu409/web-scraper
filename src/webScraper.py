@@ -3,6 +3,8 @@ import logging
 import boto3
 from typing import Callable
 from bs4 import BeautifulSoup
+import os
+from time import sleep
 
 class WebScraper:
     def __init__(self, region_name: str, profile_name: str):
@@ -41,19 +43,26 @@ class WebScraper:
             return
 
     def _initialize_webdriver(self):
-        try:
-            options = webdriver.ChromeOptions()
-            options.add_argument("--headless")
-
-            self._driver = webdriver.Chrome(options=options)
-        except Exception as e:
-            logging.error(f"Error initializing webdriver: {e}")
-            return
+        while True:
+            try:
+                options = webdriver.ChromeOptions()
+                options.add_argument("--no-sandbox")
+                self._driver = webdriver.Remote(
+                    command_executor='http://chrome:4444',
+                    options=options
+                )
+                break
+            except Exception as e:
+                logging.error(f"Error initializing webdriver: {e}")
+                sleep(1)
 
     def scrape(self, url: str, table_name: str, func: Callable):
         logging.info(f"Starting the webscraper on url: {url}")
         try:
             self._driver.get(url)
+
+            sleep(2)
+
             soup = BeautifulSoup(self._driver.page_source, 'html5lib')
             results = func(soup)
         except Exception as e:
@@ -62,6 +71,3 @@ class WebScraper:
 
         self.save_to_dynamodb(table_name, results)
         logging.info(f"Webscraper finished")
-
-    def __del__(self):
-        self._driver.quit()

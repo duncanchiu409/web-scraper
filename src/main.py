@@ -64,7 +64,7 @@ def scrape_coinmarketcap_crypto_trend_ranking_results(soup: BeautifulSoup):
                 '30days % Change': third_change,
                 'Market Cap': marketCap,
                 '24hrs Volume': volume,
-                'Datetime': datetime.now().isoformat(),
+                'Datetime': datetime.now(tz='Asia/Hong_Kong').isoformat(),
             })
 
         return results

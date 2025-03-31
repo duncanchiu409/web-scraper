@@ -1,0 +1,24 @@
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    hostname: chrome
+    ports:
+      - 4444:4444
+      - 7900:7900
+    privileged: true
+    shm_size: 2g
+    networks:
+      - webScraperNetwork
+
+  app:
+    build:
+      context: src/
+      dockerfile: Dockerfile
+    depends_on:
+      - chrome
+    networks:
+      - webScraperNetwork
+
+networks:
+  webScraperNetwork:
+    driver: bridge

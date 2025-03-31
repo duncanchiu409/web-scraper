@@ -1,3 +1,3 @@
-credentials/local-dynamoDB-access_accessKeys.csv
+src/credentials/local-dynamoDB-access_accessKeys.csv
 
 venv/
