@@ -1,6 +1,7 @@
 name: Scrape coinMarketCap
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
 
