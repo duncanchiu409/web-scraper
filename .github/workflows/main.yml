@@ -16,8 +16,8 @@ jobs:
         with:
           path: src/credentials/stats.csv
           columns: Access key ID, Secret access key
-          "Access key ID": ${{ secrets.Secret access key }}
-          "Secret access key": ${{ secrets.Access_key_ID }}
+          "Access key ID": ${{ secrets.Access_key_ID }}
+          "Secret access key": ${{ secrets.Secret_access_key }}
       - name: Build Docker Image
         run: docker compose build
       - name: Scrape 
