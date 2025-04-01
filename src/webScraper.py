@@ -47,6 +47,8 @@ class WebScraper:
             try:
                 options = webdriver.ChromeOptions()
                 options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")  # Recommended for Docker
+                options.add_argument("--log-level=3")
                 self._driver = webdriver.Remote(
                     command_executor='http://chrome:4444',
                     options=options

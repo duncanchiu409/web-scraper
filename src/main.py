@@ -3,9 +3,11 @@ from datetime import datetime
 import logging
 from time import sleep
 from webScraper import WebScraper
+import pytz
 
 def scrape_coinmarketcap_crypto_trend_ranking_results(soup: BeautifulSoup):
     start_time = int(datetime.now().timestamp())
+    timezone = pytz.timezone('Asia/Hong_Kong')
 
     sleep(2)
 
@@ -64,7 +66,7 @@ def scrape_coinmarketcap_crypto_trend_ranking_results(soup: BeautifulSoup):
                 '30days % Change': third_change,
                 'Market Cap': marketCap,
                 '24hrs Volume': volume,
-                'Datetime': datetime.now(tz='Asia/Hong_Kong').isoformat(),
+                'Datetime': datetime.now(timezone).isoformat(),
             })
 
         return results
