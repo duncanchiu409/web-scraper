@@ -8,13 +8,14 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    environment: AWS Credientials
     steps:
       - uses: actions/checkout@v2
       - name: Create credentials folder
         run: mkdir src/credentials
       - uses: gr2m/write-csv-file-action@v1.x
         with:
-          path: src/credentials/stats.csv
+          path: src/credentials/local-dynamoDB-access_accessKeys.csv
           columns: Access key ID,Secret access key
           "Access key ID": ${{ secrets.ACCESS_KEY_ID }}
           "Secret access key": ${{ secrets.SECRET_ACCESS_KEY }}
