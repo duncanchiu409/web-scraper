@@ -1,0 +1,15 @@
+on:
+  schedule:
+    - cron: '0,15,30,45 * * * *'
+
+name: Scrape Executive Orders
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker Image
+        run: docker compose build
+      - name: Scrape 
+        run: docker compose up --exit-code-from app   
