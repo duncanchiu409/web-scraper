@@ -1,8 +1,8 @@
+name: Scrape coinMarketCap
+
 on:
   schedule:
-    - cron: '0,15,30,45 * * * *'
-
-name: Scrape coinMarketCap
+    - cron: "0,15,30,45 * * * *"
 
 jobs:
   scrape:
