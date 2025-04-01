@@ -2,13 +2,21 @@ name: Scrape coinMarketCap
 
 on:
   schedule:
-    - cron: "0,15,30,45 * * * *"
+    - cron: "*/5 * * * *"
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Create credentials folder
+        run: mkdir src/credentials
+      - uses: gr2m/write-csv-file-action@v1.x
+        with:
+          path: src/credentials/stats.csv
+          columns: Access key ID, Secret access key
+          "Access key ID": ${{ secrets.Secret access key }}
+          "Secret access key": ${{ secrets.Access_key_ID }}
       - name: Build Docker Image
         run: docker compose build
       - name: Scrape 
