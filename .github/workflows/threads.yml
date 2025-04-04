@@ -1,0 +1,44 @@
+name: Scrape Threads
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 8 * * *"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    environment: Threads Scraper
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create credentials folder
+        run: mkdir src/credentials
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Start up Standalone-Chrome docker container
+        run: 
+          docker pull selenium/standalone-chrome:latest
+          docker run -d -p 4444:4444 -p 5900:5900 --shm-size="2g" selenium/standalone-chrome:latest
+
+      - name: Set up Python
+        # This is the version of the action for setting up Python, not the Python version.
+        uses: actions/setup-python@v5
+        with:
+          # Semantic version range syntax or exact version of a Python version
+          python-version: '3.10.4'
+          # Optional - x64 or x86 architecture, defaults to x64
+          architecture: 'x64'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Scrape
+        run: python src/threads_webscraper.py
+
+      - name: Stop Standalone-Chrome docker container
+        run: docker stop $(docker ps -q) 
