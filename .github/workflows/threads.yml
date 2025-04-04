@@ -47,6 +47,10 @@ jobs:
           echo THREADS_URL="https://www.threads.net/search?q=cryptocurrency" >> src/.env
           echo THREADS_POSTS_LIMIT="100" >> src/.env
           echo TIMEZONE="Asia/Hong_Kong" >> src/.env
+      - name: Add profile credentials to ~/.aws/credentials 
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile ${{ secrets.AWS_ROLE_TO_ASSUME }}
       - name: Install dependencies
         run: pip install -r src/requirements.txt
       - name: Scrape Threads
