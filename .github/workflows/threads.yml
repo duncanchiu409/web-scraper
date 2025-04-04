@@ -9,6 +9,8 @@ jobs:
   Scrape:
     runs-on: ubuntu-latest
     environment: Credentials
+    env:
+      AWS_REGION: 
     steps:
       - uses: actions/checkout@v2
 
@@ -39,16 +41,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r src/requirements.txt
       - name: Setup Environment Variables
-        run: |
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
-          echo "AWS_PROFILE=${{ secrets.AWS_ROLE_TO_ASSUME }}" >> "$GITHUB_ENV"
-          echo "AWS_DYNAMODB_TABLE=webscraper-threads-posts-table" >> "$GITHUB_ENV"
-          echo "THREADS_LOGIN_URL=https://www.threads.net/login" >> "$GITHUB_ENV"
-          echo "THREADS_LOGIN_USERNAME=${{ secrets.THREADS_LOGIN_USERNAME }}" >> "$GITHUB_ENV"
-          echo "THREADS_LOGIN_PASSWORD=${{ secrets.THREADS_LOGIN_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "THREADS_URL=https://www.threads.net/search?q=cryptocurrency" >> "$GITHUB_ENV"
-          echo "THREADS_POSTS_LIMIT=100" >> "$GITHUB_ENV"
-          echo "TIMEZONE=Asia/Hong_Kong" >> "$GITHUB_ENV"
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}"
+          AWS_PROFILE: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          AWS_DYNAMODB_TABLE: "webscraper-threads-posts-table"
+          THREADS_LOGIN_URL: "https://www.threads.net/login"
+          THREADS_LOGIN_USERNAME: ${{ secrets.THREADS_LOGIN_USERNAME }}
+          THREADS_LOGIN_PASSWORD: ${{ secrets.THREADS_LOGIN_PASSWORD }}
+          THREADS_URL: "https://www.threads.net/search?q=cryptocurrency"
+          THREADS_POSTS_LIMIT: "100"
+          TIMEZONE: "Asia/Hong_Kong"
       - name: Scrape Threads
         run: python src/threads_webscraper.py
 
