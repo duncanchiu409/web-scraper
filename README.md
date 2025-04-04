@@ -23,13 +23,13 @@ Please make you have installed docker and aws cli. Docker (https://docs.docker.c
 First, we need to pull the docker image of the webdriver. I used selenium/standalone-chrome-debug:latest instead of selenium/grid-hubs and selenium/node-chrome:latest because I don't need to run the webdriver on multiple browsers. (https://hub.docker.com/r/selenium/standalone-chrome)
 
 ```bash
-docker pull selenium/standalone-chrome-debug:latest
+docker pull selenium/standalone-chrome:latest
 ```
 
 Next, we need to start the docker container.
 
 ```bash
-docker run -d -p 4444:4444 -p 5900:5900 -v /dev/shm:/dev/shm selenium/standalone-chrome-debug:latest
+docker run -d -p 4444:4444 -p 5900:5900 -v /dev/shm:/dev/shm selenium/standalone-chrome:latest
 ```
 
 ### Setup AWS DynamoDB

@@ -191,8 +191,6 @@ def scrape_threads_social_media_results(soup: BeautifulSoup):
         logging.error(f"Error scraping the threads social media results: {e}")
         return
 
-
-
 if __name__ == "__main__":
     # Configure the logging
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

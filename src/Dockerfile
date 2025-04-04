@@ -14,8 +14,8 @@ RUN unzip awscliv2.zip
 
 RUN ./aws/install
 
-RUN aws configure import --csv file://./credentials/local-dynamoDB-access_accessKeys.csv
+RUN aws configure import --csv file://./credentials/<your_access_key_file>.csv
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "main.py"]
+# CMD ["python", "<your_script>.py"]
