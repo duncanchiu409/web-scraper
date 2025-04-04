@@ -20,12 +20,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          # role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Pull Docker image
+        run: docker pull selenium/standalone-chrome:latest
 
       - name: Start up Standalone-Chrome docker container
-        run: 
-          docker pull selenium/standalone-chrome:latest
-          docker run -d -p 4444:4444 -p 5900:5900 --shm-size="2g" selenium/standalone-chrome:latest
+        run: docker run -d -p 4444:4444 -p 5900:5900 --shm-size="2g" selenium/standalone-chrome:latest
 
       - name: Set up Python
         # This is the version of the action for setting up Python, not the Python version.
@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Setup Environment Variables
-        run: 
+        run: |
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
           echo "AWS_PROFILE=${{ secrets.AWS_ROLE_TO_ASSUME }}" >> "$GITHUB_ENV"
           echo "AWS_DYNAMODB_TABLE=webscraper-threads-posts-table" >> "$GITHUB_ENV"
