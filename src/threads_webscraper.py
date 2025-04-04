@@ -1,82 +1,30 @@
+from webscraper import Webscraper
 from bs4 import BeautifulSoup
-from datetime import datetime
 import logging
+import os
+import json
+from typing import Callable
+from utils import wait_for_element
+from selenium.webdriver.common.by import By
+from dotenv import dotenv_values
 from time import sleep
-from webscraper import WebScraper
+from datetime import datetime
 import pytz
 
-def scrape_coinmarketcap_crypto_trend_ranking_results(soup: BeautifulSoup):
-    logging.info("Starting to scrape the coinmarketcap crypto trend ranking results")
-    start_time = int(datetime.now().timestamp())
-    timezone = pytz.timezone('Asia/Hong_Kong')
+config = dotenv_values(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+AWS_DYNAMODB_TABLE = config['AWS_DYNAMODB_TABLE'] if config['AWS_DYNAMODB_TABLE'] else os.getenv('AWS_DYNAMODB_TABLE')
 
-    try:
-        tbody_html_element = soup.find_next('tbody')
-        if tbody_html_element is None:
-            raise Exception("Tbody element not found")
+THREADS_LOGIN_URL = config['THREADS_LOGIN_URL'] if config['THREADS_LOGIN_URL'] else os.getenv('THREADS_LOGIN_URL')
+THREADS_LOGIN_USERNAME = config['THREADS_LOGIN_USERNAME'] if config['THREADS_LOGIN_USERNAME'] else os.getenv('THREADS_LOGIN_USERNAME')
+THREADS_LOGIN_PASSWORD = config['THREADS_LOGIN_PASSWORD'] if config['THREADS_LOGIN_PASSWORD'] else os.getenv('THREADS_LOGIN_PASSWORD')
+THREADS_URL = config['THREADS_URL'] if config['THREADS_URL'] else os.getenv('THREADS_URL')
+THREADS_POSTS_LIMIT = config['THREADS_POSTS_LIMIT'] if config['THREADS_POSTS_LIMIT'] else os.getenv('THREADS_POSTS_LIMIT')
 
-        tr_elements = tbody_html_element.find_all('tr')
-        if tr_elements is None or len(tr_elements) == 0:
-            raise Exception("No table rows found")
-
-        assert len(tr_elements) >= 9
-
-        results = []
-
-        for i in range(len(tr_elements)):
-            td_html_elements = tr_elements[i].find_all('td')
-
-            # Ranking
-            ranking = td_html_elements[1].text
-
-            # Crypto Name
-            crypto_name = td_html_elements[2].find_next('p').text
-
-            # Crypto Symbol
-            crypto_symbol = td_html_elements[2].find_next('p', attrs={'class': 'coin-item-symbol'}).text
-
-            # Price td
-            span_html_element = td_html_elements[3].text
-
-            # 24hrs Change
-            first_change = td_html_elements[4].text
-
-            # 7days Change
-            second_change = td_html_elements[5].text
-
-            # 30days Change
-            third_change = td_html_elements[6].text
-
-            # Market Cap
-            marketCap = td_html_elements[7].text
-
-            # 24hrs Volume
-            volume = td_html_elements[8].text
-
-            logging.debug(f"Scraped {ranking}, {crypto_name}, {crypto_symbol}, {span_html_element}, {first_change}, {second_change}, {third_change}, {marketCap}, {volume}")
-
-            results.append({
-                'id': start_time+i,
-                'Crypto Name': crypto_name,
-                'Crypto Symbol': crypto_symbol,
-                'Ranking': ranking,
-                '24hrs % Change': first_change,
-                '7days % Change': second_change,
-                '30days % Change': third_change,
-                'Market Cap': marketCap,
-                '24hrs Volume': volume,
-                'Datetime': datetime.now(timezone).isoformat(),
-            })
-
-        return results
-
-    except Exception as e:
-        logging.error(f"Error scraping the coinmarketcap crypto trend ranking results: {e}")
-        return
+TIMEZONE = config['TIMEZONE'] if config['TIMEZONE'] else os.getenv('TIMEZONE')
 
 def scrape_threads_social_media_results(soup: BeautifulSoup):
     logging.info("Starting to scrape the threads social media results")
-    timezone = pytz.timezone('Asia/Hong_Kong')
+    timezone = pytz.timezone(TIMEZONE)
     start_time = int(datetime.now().timestamp())
 
     try:
@@ -191,17 +139,95 @@ def scrape_threads_social_media_results(soup: BeautifulSoup):
         logging.error(f"Error scraping the threads social media results: {e}")
         return
 
+class ThreadsWebscraper(Webscraper):
+    def __init__(self):
+        super().__init__()
 
+    def scrape(self, url: str, table_name: str, func: Callable, scroll_to_bottom: bool = True):
+        logging.info(f"Starting the webscraper on url: {url}")
+        try:
+            # Get the directory of the current script
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # Construct the path to threads.json
+            threads_json_path = os.path.join(current_dir, 'credentials', 'threads.json')
+
+            with self._driver:
+                # Go to the url
+                self._driver.get(url)
+
+                # Wait for the threads posts' div element to be present
+                wait_for_element(self._driver, "//div[@class='x1a2a7pz x1n2onr6']")
+
+                # If the threads.json file exists, load the cookies and refresh the page
+                if os.path.exists(threads_json_path):
+                    with open(threads_json_path) as f:
+                        d = json.load(f)
+                    for cookie in d:
+                        self._driver.add_cookie(cookie)
+                    self._driver.refresh()
+                else:
+                    # Go to the threads login url
+                    self._driver.get(THREADS_LOGIN_URL)
+
+                    # Wait for the username input element to be present
+                    wait_for_element(self._driver, "//input[@placeholder='Username, phone or email']")
+
+                    self._driver.find_element(By.XPATH, "//input[@placeholder='Username, phone or email']").send_keys(THREADS_LOGIN_USERNAME)
+                    self._driver.find_element(By.XPATH, "//input[@placeholder='Password']").send_keys(THREADS_LOGIN_PASSWORD)
+                    self._driver.find_element(By.XPATH, "//input[@type='submit']").submit()
+
+                    wait_for_element(self._driver, "//div[@class='xc26acl x6s0dn4 x78zum5 xl56j7k x6ikm8r x10wlt62 x1swvt13 x1pi30zi xlyipyv xp07o12']")
+                    self._driver.get(url)
+
+                # Wait for the threads posts' div element to be present
+                wait_for_element(self._driver, "//div[@class='x1a2a7pz x1n2onr6']")
+
+                # Wait for dynamic content to load (ensure the page is fully loaded)
+                sleep(2)
+
+                cookies = self._driver.get_cookies()
+
+                # Write cookies to threads.json
+                with open(threads_json_path, 'w') as f:
+                    json.dump(cookies, f)
+
+                results = []
+                if not scroll_to_bottom:
+                    # Parse the page source
+                    soup = BeautifulSoup(self._driver.page_source, 'html5lib')
+                    results = func(soup)
+
+                    # Save the results to dynamodb
+                    self.save_to_dynamodb(table_name, results)
+                else:
+                    while len(results) < int(THREADS_POSTS_LIMIT):
+                        soup = BeautifulSoup(self._driver.page_source, 'html5lib')
+                        for item_1 in func(soup):
+                            found = False
+                            for item_2 in results:
+                                if item_1['Href'] == item_2['Href']:
+                                    found = True
+                                    break
+                            if not found:
+                                results.append(item_1)
+
+                        self._driver.execute_script("window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'})")
+                        logging.info("Scrolling to the bottom of the page")
+
+                    self.save_to_dynamodb(table_name, results)
+
+        except Exception as e:
+            logging.error(f"Error scraping: {e}")
+            exit()
 
 if __name__ == "__main__":
     # Configure the logging
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    webscraper = WebScraper()
+    webscraper = ThreadsWebscraper()
     webscraper.scrape(
-        url="https://www.threads.net/search?q=cryptocurrency",
-        table_name="threads_posts_table",
+        url=THREADS_URL,
+        table_name=AWS_DYNAMODB_TABLE,
         func=scrape_threads_social_media_results,
-        scroll_to_bottom=True
-    )
+        scroll_to_bottom=True)

@@ -1,3 +1,7 @@
-src/credentials/local-dynamoDB-access_accessKeys.csv
+src/credentials/
 
 venv/
+
+src/.env
+
+webscraper-user_accessKeys.csv
