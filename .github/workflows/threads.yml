@@ -6,9 +6,9 @@ on:
     - cron: "15 8 * * *"
 
 jobs:
-  scrape:
+  Scrape:
     runs-on: ubuntu-latest
-    environment: Threads Scraper
+    environment: Credentials
     steps:
       - uses: actions/checkout@v2
 
@@ -17,7 +17,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -38,7 +38,18 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Scrape
+      - name: Setup Environment Variables
+        run: 
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
+          echo "AWS_PROFILE=${{ secrets.AWS_ROLE_TO_ASSUME }}" >> "$GITHUB_ENV"
+          echo "AWS_DYNAMODB_TABLE=webscraper-threads-posts-table" >> "$GITHUB_ENV"
+          echo "THREADS_LOGIN_URL=https://www.threads.net/login" >> "$GITHUB_ENV"
+          echo "THREADS_LOGIN_USERNAME=${{ secrets.THREADS_LOGIN_USERNAME }}" >> "$GITHUB_ENV"
+          echo "THREADS_LOGIN_PASSWORD=${{ secrets.THREADS_LOGIN_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "THREADS_URL=https://www.threads.net/search?q=cryptocurrency" >> "$GITHUB_ENV"
+          echo "THREADS_POSTS_LIMIT=100" >> "$GITHUB_ENV"
+          echo "TIMEZONE=Asia/Hong_Kong" >> "$GITHUB_ENV"
+      - name: Scrape Threads
         run: python src/threads_webscraper.py
 
       - name: Stop Standalone-Chrome docker container
