@@ -9,16 +9,6 @@ jobs:
   Scrape:
     runs-on: ubuntu-latest
     environment: Credentials
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}"
-      AWS_PROFILE: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-      AWS_DYNAMODB_TABLE: "webscraper-threads-posts-table"
-      THREADS_LOGIN_URL: "https://www.threads.net/login"
-      THREADS_LOGIN_USERNAME: ${{ secrets.THREADS_LOGIN_USERNAME }}
-      THREADS_LOGIN_PASSWORD: ${{ secrets.THREADS_LOGIN_PASSWORD }}
-      THREADS_URL: "https://www.threads.net/search?q=cryptocurrency"
-      THREADS_POSTS_LIMIT: "100"
-      TIMEZONE: "Asia/Hong_Kong"
     steps:
       - uses: actions/checkout@v2
 
@@ -45,7 +35,19 @@ jobs:
           python-version: '3.10.4'
           # Optional - x64 or x86 architecture, defaults to x64
           architecture: 'x64'
-
+      - name: Create .env file
+        run: |
+          touch src/.env
+          run: |
+          echo AWS_REGION=${{ secrets.AWS_REGION }} >> src/.env
+          echo AWS_PROFILE=${{ secrets.AWS_ROLE_TO_ASSUME }} >> src/.env
+          echo AWS_DYNAMODB_TABLE="webscraper-threads-posts-table" >> src/.env
+          echo THREADS_LOGIN_URL="https://www.threads.net/login" >> src/.env
+          echo THREADS_LOGIN_USERNAME=${{ secrets.THREADS_LOGIN_USERNAME }} >> src/.env
+          echo THREADS_LOGIN_PASSWORD=${{ secrets.THREADS_LOGIN_PASSWORD }} >> src/.env
+          echo THREADS_URL="https://www.threads.net/search?q=cryptocurrency" >> src/.env
+          echo THREADS_POSTS_LIMIT="100" >> src/.env
+          echo TIMEZONE="Asia/Hong_Kong" >> src/.env
       - name: Install dependencies
         run: pip install -r src/requirements.txt
       - name: Scrape Threads
