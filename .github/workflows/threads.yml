@@ -38,7 +38,6 @@ jobs:
       - name: Create .env file
         run: |
           touch src/.env
-          run: |
           echo AWS_REGION=${{ secrets.AWS_REGION }} >> src/.env
           echo AWS_PROFILE=${{ secrets.AWS_ROLE_TO_ASSUME }} >> src/.env
           echo AWS_DYNAMODB_TABLE="webscraper-threads-posts-table" >> src/.env
