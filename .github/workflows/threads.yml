@@ -9,8 +9,6 @@ jobs:
   Scrape:
     runs-on: ubuntu-latest
     environment: Credentials
-    env:
-      AWS_REGION: 
     steps:
       - uses: actions/checkout@v2
 
